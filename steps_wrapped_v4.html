@@ -1,0 +1,597 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blk:#0a0a0a;--wht:#f5f0e8;
+  --lime:#d4ff00;--hot:#ff2d78;--cyan:#00e5ff;--amber:#ffb800;--violet:#7c3aed;
+}
+body{background:#111;font-family:'Inter',sans-serif}
+.app{width:100%;min-height:620px;background:#111;border-radius:20px;overflow:hidden}
+
+/* UPLOAD */
+.upload-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:620px;padding:2rem;text-align:center;gap:1.25rem;background:#0a0a0a}
+.logo-word{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.35em;color:var(--lime);margin-bottom:.25rem}
+.upload-title{font-family:'Bebas Neue',sans-serif;font-size:58px;line-height:.95;color:var(--wht);letter-spacing:2px}
+.upload-title em{color:var(--lime);font-style:normal}
+.upload-sub{font-size:13px;color:#888;max-width:320px;line-height:1.6}
+.drop-zone{width:100%;max-width:400px;border:1.5px dashed #333;border-radius:16px;padding:2rem 1.5rem;cursor:pointer;transition:all .25s;background:#111}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--lime);background:rgba(212,255,0,.04)}
+.drop-zone p{font-size:13px;color:#666}
+.drop-zone strong{color:#aaa;font-weight:500}
+.file-inp{display:none}
+.demo-link{font-size:13px;color:#555;cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .2s}
+.demo-link:hover{color:var(--lime)}
+.err{background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);color:#ff8aaa;font-size:12px;padding:.75rem 1rem;border-radius:8px;display:none;max-width:400px}
+
+/* SELECT */
+.select-screen{display:none;min-height:620px;background:#0a0a0a;padding:1.5rem}
+.sel-header{display:flex;align-items:center;gap:12px;margin-bottom:2rem}
+.back{background:#1a1a1a;border:none;color:#666;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.back:hover{color:var(--wht)}
+.sel-title{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--wht);letter-spacing:1px}
+.sel-sub{font-size:12px;color:#555;letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.user-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.u-card{background:#111;border:1px solid #222;border-radius:14px;padding:1.25rem 1rem;cursor:pointer;transition:all .22s;position:relative}
+.u-card:hover{border-color:var(--lime);transform:translateY(-3px)}
+.u-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:20px;margin-bottom:.75rem;letter-spacing:1px}
+.u-name{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--wht);letter-spacing:.5px;margin-bottom:3px}
+.u-steps{font-size:11px;color:#555;font-family:'Space Mono',monospace}
+
+/* VIEWER */
+.viewer{display:none;background:#0a0a0a;min-height:620px;flex-direction:column}
+.viewer.on{display:flex}
+.slide-frame{flex:1;position:relative;overflow:hidden;min-height:530px}
+.slide{display:none;position:absolute;inset:0;animation:slIn .45s cubic-bezier(.16,1,.3,1) forwards;overflow:hidden}
+.slide.active{display:flex;flex-direction:column;justify-content:center}
+@keyframes slIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes barGrow{from{width:0}to{width:var(--w)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.nav-bar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;background:#0a0a0a;border-top:1px solid #1a1a1a;flex-shrink:0;gap:12px}
+.progress-dots{display:flex;gap:5px;flex:1}
+.dot{height:3px;border-radius:99px;background:#222;transition:all .35s;cursor:pointer}
+.dot.done{background:#444}.dot.now{background:var(--lime)}
+.nb-btns{display:flex;gap:8px}
+.nb{background:#1a1a1a;border:none;color:#888;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:7px 16px;border-radius:99px;cursor:pointer;transition:all .2s}
+.nb:hover{color:var(--wht)}
+.nb.primary{background:var(--lime);color:#000;font-weight:600}
+.nb:disabled{opacity:.25;cursor:default}
+.viewer-top{display:flex;align-items:center;padding:.9rem 1.25rem;gap:10px;flex-shrink:0}
+.vt-back{background:#1a1a1a;border:none;color:#666;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vt-back:hover{color:var(--wht)}
+.vt-user{font-family:'Bebas Neue',sans-serif;font-size:16px;color:#888;letter-spacing:1px}
+.vt-sep{color:#333;font-size:12px}
+.vt-month{font-family:'Space Mono',monospace;font-size:11px;color:#444}
+
+/* ── SLIDE 1: Total — gradient mesh ── */
+.s1{padding:2.5rem 2rem;position:relative;overflow:hidden}
+.s1-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 50% at 80% 10%, rgba(212,255,0,.22) 0%, transparent 60%),
+  radial-gradient(ellipse 50% 60% at 10% 90%, rgba(0,229,255,.14) 0%, transparent 60%),
+  #0a0a0a;pointer-events:none}
+.s1-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.5rem;position:relative}
+.s1-name{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:.95;color:var(--wht);letter-spacing:2px;margin-bottom:.5rem;position:relative}
+.s1-label{font-family:'Space Mono',monospace;font-size:11px;color:#555;margin-bottom:.5rem;letter-spacing:.1em;position:relative}
+.s1-num{font-family:'Bebas Neue',sans-serif;font-size:84px;line-height:.9;letter-spacing:-1px;position:relative;background:linear-gradient(135deg,var(--lime) 0%,#a8ff00 40%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s1-unit{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#333;letter-spacing:2px;margin-top:.5rem;position:relative}
+.s1-bar{height:3px;background:#1a1a1a;border-radius:99px;margin:2rem 0 1rem;overflow:hidden;position:relative}
+.s1-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--lime),var(--cyan));animation:barGrow 1.2s cubic-bezier(.16,1,.3,1) .3s both}
+.s1-foot{font-size:13px;color:#555;line-height:1.6;position:relative}
+.s1-foot strong{color:#888}
+
+/* ── SLIDE 2: Daily Avg — hot gradient aurora ── */
+.s2{padding:2.5rem 2rem;position:relative;overflow:hidden}
+.s2-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 70% 60% at 90% 0%, rgba(255,45,120,.3) 0%, transparent 55%),
+  radial-gradient(ellipse 50% 50% at 0% 100%, rgba(124,58,237,.2) 0%, transparent 55%),
+  radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255,184,0,.06) 0%, transparent 70%),
+  #08000d;pointer-events:none}
+.s2-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:var(--hot);letter-spacing:.2em;text-transform:uppercase;margin-bottom:2rem;position:relative}
+.s2-label{font-size:13px;color:#888;margin-bottom:.4rem;position:relative}
+.s2-num{font-family:'Bebas Neue',sans-serif;font-size:90px;line-height:.9;letter-spacing:-2px;position:relative;background:linear-gradient(135deg,#fff 0%,var(--hot) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s2-unit{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;margin-top:.4rem;position:relative;background:linear-gradient(90deg,var(--hot),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s2-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,45,120,.3),transparent);margin:1.5rem 0;position:relative}
+.s2-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:relative}
+.s2-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.9rem 1rem;backdrop-filter:blur(8px)}
+.s2-stat-val{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.5px;background:linear-gradient(135deg,var(--wht),#aaa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s2-stat-lbl{font-size:11px;color:#555;margin-top:3px;line-height:1.4}
+.s2-fun-row{position:relative;margin-top:10px;background:linear-gradient(135deg,rgba(255,45,120,.1),rgba(124,58,237,.1));border:1px solid rgba(255,45,120,.15);border-radius:12px;padding:.9rem 1rem}
+.s2-fun-icon{font-size:18px;margin-bottom:4px}
+.s2-fun-text{font-size:12px;color:#aaa;line-height:1.5}
+.s2-fun-text strong{color:var(--wht)}
+
+/* ── SLIDE 3: Leaderboard — amber gradient ── */
+.s3{padding:2rem 2rem;position:relative;overflow:hidden}
+.s3-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 50% at 100% 0%, rgba(255,184,0,.18) 0%, transparent 55%),
+  radial-gradient(ellipse 40% 40% at 0% 100%, rgba(255,45,120,.08) 0%, transparent 60%),
+  #0a0800;pointer-events:none}
+.s3-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.25rem;position:relative}
+.s3-title{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;margin-bottom:1.25rem;position:relative;background:linear-gradient(135deg,var(--wht) 0%,var(--amber) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lb-row{display:flex;align-items:center;gap:12px;padding:.75rem 0;border-bottom:1px solid rgba(255,184,0,.08);position:relative}
+.lb-row:last-child{border:none}
+.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:26px;width:28px;text-align:center;flex-shrink:0;color:#2a2200}
+.lb-rank.gold{background:linear-gradient(135deg,var(--amber),#fff176);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lb-rank.silver{background:linear-gradient(135deg,#ccc,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lb-rank.bronze{background:linear-gradient(135deg,#cd7f32,#f0a965);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lb-bar-wrap{flex:1}
+.lb-name{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--wht);letter-spacing:.5px;margin-bottom:4px}
+.lb-track{height:3px;background:#1a1500;border-radius:99px;overflow:hidden}
+.lb-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--amber),#fff176);animation:barGrow 1s cubic-bezier(.16,1,.3,1) calc(.1s * var(--i)) both}
+.lb-steps{font-family:'Space Mono',monospace;font-size:11px;color:#555;flex-shrink:0}
+.lb-steps.top1{color:var(--amber)}
+.me-badge{font-size:9px;background:linear-gradient(90deg,var(--lime),#a8ff00);color:#000;padding:1px 7px;border-radius:99px;font-weight:700;margin-left:6px;vertical-align:middle;font-family:'Inter',sans-serif;letter-spacing:.05em}
+
+/* ── SLIDE 4: Best Day — cyan aurora ── */
+.s4{padding:2.5rem 2rem;position:relative;overflow:hidden}
+.s4-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 55% 55% at 15% 15%, rgba(0,229,255,.2) 0%, transparent 60%),
+  radial-gradient(ellipse 50% 40% at 90% 90%, rgba(212,255,0,.1) 0%, transparent 60%),
+  #000d10;pointer-events:none}
+.s4-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:.2em;text-transform:uppercase;margin-bottom:2.5rem;position:relative}
+.s4-label{font-size:13px;color:#888;margin-bottom:.4rem;position:relative}
+.s4-num{font-family:'Bebas Neue',sans-serif;font-size:90px;line-height:.9;letter-spacing:-2px;position:relative;background:linear-gradient(135deg,var(--cyan) 0%,#fff 60%,var(--lime) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s4-date{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#334;letter-spacing:2px;margin-top:.75rem;position:relative}
+.s4-compare{margin-top:1.75rem;display:flex;gap:10px;position:relative}
+.s4-chip{flex:1;background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.14);border-radius:10px;padding:.7rem;text-align:center}
+.s4-chip-val{font-family:'Bebas Neue',sans-serif;font-size:24px;background:linear-gradient(135deg,var(--cyan),var(--wht));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.5px}
+.s4-chip-lbl{font-size:10px;color:#446;margin-top:2px}
+
+/* ── SLIDE 5: Top 5 Days — violet gradient ── */
+.s5{padding:2rem 2rem;position:relative;overflow:hidden}
+.s5-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 50% at 80% 10%, rgba(124,58,237,.25) 0%, transparent 55%),
+  radial-gradient(ellipse 40% 40% at 10% 80%, rgba(255,45,120,.1) 0%, transparent 60%),
+  #040010;pointer-events:none}
+.s5-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:#a78bfa;letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.25rem;position:relative}
+.s5-title{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;margin-bottom:1.25rem;position:relative;background:linear-gradient(135deg,var(--wht),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.days-list{display:flex;flex-direction:column;gap:8px;position:relative}
+.day-item{display:flex;align-items:center;gap:12px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:.7rem 1rem}
+.day-num-badge{font-family:'Bebas Neue',sans-serif;font-size:20px;width:32px;text-align:center;flex-shrink:0;background:linear-gradient(135deg,rgba(124,58,237,.5),rgba(167,139,250,.8));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.day-item-bar{flex:1;height:3px;background:#0a0018;border-radius:99px;overflow:hidden}
+.day-item-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#7c3aed,#a78bfa,#c4b5fd);animation:barGrow .9s cubic-bezier(.16,1,.3,1) calc(.08s * var(--i)) both}
+.day-item-steps{font-family:'Space Mono',monospace;font-size:11px;color:#666;flex-shrink:0}
+.day-item-steps.best{background:linear-gradient(135deg,#a78bfa,var(--wht));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ── SLIDE 6: Calories — amber gradient ── */
+.s6{padding:2.5rem 2rem;position:relative;overflow:hidden}
+.s6-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 55% at 90% 10%, rgba(255,184,0,.22) 0%, transparent 55%),
+  radial-gradient(ellipse 45% 45% at 5% 85%, rgba(255,45,120,.12) 0%, transparent 60%),
+  #0a0500;pointer-events:none}
+.s6-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:.2em;text-transform:uppercase;margin-bottom:2.5rem;position:relative}
+.s6-label{font-size:13px;color:#888;margin-bottom:.4rem;position:relative}
+.s6-num{font-family:'Bebas Neue',sans-serif;font-size:84px;line-height:.9;letter-spacing:-2px;position:relative;background:linear-gradient(135deg,var(--amber) 0%,#fff8dc 60%,var(--hot) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s6-unit{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#3a2a00;letter-spacing:3px;margin-top:.4rem;position:relative}
+.s6-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1.75rem;position:relative}
+.s6-cell{background:rgba(255,184,0,.06);border:1px solid rgba(255,184,0,.12);border-radius:10px;padding:.8rem}
+.s6-cell-val{font-family:'Bebas Neue',sans-serif;font-size:24px;background:linear-gradient(135deg,var(--amber),var(--wht));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.5px}
+.s6-cell-lbl{font-size:11px;color:#555;margin-top:2px}
+
+/* ── SLIDE 7: Streak — lime gradient ── */
+.s7{padding:2.5rem 2rem;position:relative;overflow:hidden}
+.s7-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 55% 55% at 50% -10%, rgba(212,255,0,.2) 0%, transparent 60%),
+  radial-gradient(ellipse 40% 40% at 90% 90%, rgba(0,229,255,.1) 0%, transparent 60%),
+  #020a00;pointer-events:none}
+.s7-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:.2em;text-transform:uppercase;margin-bottom:2.5rem;position:relative;opacity:.8}
+.s7-label{font-size:13px;color:#888;margin-bottom:.4rem;position:relative}
+.s7-num{font-family:'Bebas Neue',sans-serif;font-size:110px;line-height:.85;letter-spacing:-4px;position:relative;background:linear-gradient(135deg,var(--lime) 0%,#fff 50%,#a8ff00 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s7-unit{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#1a3a00;letter-spacing:3px;margin-top:.4rem;position:relative}
+.s7-foot{font-size:13px;color:#445;margin-top:2rem;line-height:1.6;position:relative}
+.s7-foot strong{color:#778}
+
+/* ── SLIDE 8: Persona — hot gradient ── */
+.s8{padding:2.5rem 2rem;position:relative;overflow:hidden}
+.s8-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 70% 70% at 50% 0%, rgba(255,45,120,.5) 0%, transparent 55%),
+  radial-gradient(ellipse 50% 50% at 0% 100%, rgba(124,58,237,.3) 0%, transparent 55%),
+  radial-gradient(ellipse 40% 40% at 100% 80%, rgba(255,184,0,.15) 0%, transparent 60%),
+  #0d000a;pointer-events:none}
+.s8-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.75rem;position:relative}
+.s8-title{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:.95;color:var(--wht);letter-spacing:2px;margin-bottom:1.25rem;position:relative}
+.s8-desc{font-size:14px;color:rgba(255,255,255,.65);line-height:1.7;max-width:340px;position:relative}
+.s8-stats-row{display:flex;gap:10px;margin-top:1.75rem;position:relative}
+.s8-stat{background:rgba(255,255,255,.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;flex:1}
+.s8-stat-val{font-family:'Bebas Neue',sans-serif;font-size:24px;background:linear-gradient(135deg,var(--wht),rgba(255,255,255,.7));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.5px}
+.s8-stat-lbl{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
+
+/* ── SLIDE 9: Finale — gradient explosion ── */
+.s9{padding:2.5rem 2rem;position:relative;overflow:hidden;text-align:center}
+.s9-mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 50% at 20% 20%, rgba(212,255,0,.15) 0%, transparent 55%),
+  radial-gradient(ellipse 50% 50% at 80% 80%, rgba(0,229,255,.12) 0%, transparent 55%),
+  radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255,45,120,.08) 0%, transparent 70%),
+  #0a0a0a;pointer-events:none}
+.s9-eyebrow{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);letter-spacing:.25em;text-transform:uppercase;margin-bottom:1.5rem;position:relative}
+.s9-name{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:.95;letter-spacing:2px;position:relative;background:linear-gradient(135deg,var(--wht) 0%,#aaa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s9-tagline{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;margin:1rem 0 1.5rem;position:relative;background:linear-gradient(90deg,var(--lime),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s9-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:1.75rem;position:relative}
+.s9-chip{border:1px solid #1e1e1e;border-radius:99px;padding:5px 13px;font-size:11px;color:#555;font-family:'Space Mono',monospace}
+.s9-chip.hi{border-color:rgba(212,255,0,.3);color:var(--lime);background:rgba(212,255,0,.05)}
+.s9-replay{border:none;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;padding:11px 30px;border-radius:99px;cursor:pointer;transition:all .2s;position:relative;background:linear-gradient(135deg,var(--lime),var(--cyan));color:#000;font-weight:900}
+.s9-replay:hover{opacity:.9;transform:scale(1.03)}
+</style>
+
+<div class="app">
+
+<div class="upload-screen" id="uploadScreen">
+  <div class="logo-word">Steps Wrapped</div>
+  <div class="upload-title">YOUR<br>STEPS.<br><em>WRAPPED.</em></div>
+  <p class="upload-sub">Upload your team's Excel file and get a full Wrapped experience for each person.</p>
+  <div class="drop-zone" id="dropZone" onclick="document.getElementById('fi').click()">
+    <p style="margin-bottom:.5rem"><strong>Drop .xlsx here</strong></p>
+    <p>or click to browse</p>
+    <input type="file" id="fi" class="file-inp" accept=".xlsx,.xls,.csv"/>
+  </div>
+  <div class="err" id="errMsg"></div>
+  <span class="demo-link" onclick="loadDemo()">or try with demo data →</span>
+</div>
+
+<div class="select-screen" id="selectScreen">
+  <div class="sel-header">
+    <button class="back" onclick="goTo('upload')">←</button>
+    <div>
+      <div class="sel-title">WHOSE WRAPPED?</div>
+      <div class="sel-sub" id="selSub">pick a person</div>
+    </div>
+  </div>
+  <div class="user-grid" id="userGrid"></div>
+</div>
+
+<div class="viewer" id="viewer">
+  <div class="viewer-top">
+    <button class="vt-back" onclick="goTo('select')">←</button>
+    <span class="vt-user" id="vtUser"></span>
+    <span class="vt-sep">·</span>
+    <span class="vt-month" id="vtMonth"></span>
+  </div>
+  <div class="slide-frame" id="slideFrame"></div>
+  <div class="nav-bar">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="nb-btns">
+      <button class="nb" id="prevBtn" onclick="nav(-1)">←</button>
+      <button class="nb primary" id="nextBtn" onclick="nav(1)">next →</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const AVG_GLOBAL=4000,STEP_M=0.762;
+let DATA=null,curSlide=0,totalSlides=0;
+const PALETTES=[
+  {bg:'rgba(212,255,0,.12)',color:'#d4ff00'},
+  {bg:'rgba(255,45,120,.12)',color:'#ff2d78'},
+  {bg:'rgba(0,229,255,.12)',color:'#00e5ff'},
+  {bg:'rgba(255,184,0,.12)',color:'#ffb800'},
+  {bg:'rgba(124,58,237,.15)',color:'#a78bfa'},
+  {bg:'rgba(100,255,180,.1)',color:'#64ffb4'},
+];
+
+function goTo(s){
+  document.getElementById('uploadScreen').style.display=s==='upload'?'flex':'none';
+  document.getElementById('selectScreen').style.display=s==='select'?'block':'none';
+  document.getElementById('viewer').classList.toggle('on',s==='viewer');
+}
+goTo('upload');
+
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');handleFile(e.dataTransfer.files[0])});
+document.getElementById('fi').addEventListener('change',e=>handleFile(e.target.files[0]));
+function showErr(m){const el=document.getElementById('errMsg');el.textContent=m;el.style.display='block'}
+
+function handleFile(f){
+  if(!f)return;
+  const ext=f.name.split('.').pop().toLowerCase();
+  if(!['xlsx','xls','csv'].includes(ext)){showErr('Please upload .xlsx, .xls, or .csv');return}
+  const r=new FileReader();r.onload=e=>parseWB(e.target.result);r.readAsArrayBuffer(f);
+}
+
+function parseWB(buf){
+  try{
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:0});
+    let hRow=-1,dStart=-1;
+    for(let i=0;i<Math.min(raw.length,10);i++){
+      const r=raw[i];
+      if(r.some(c=>typeof c==='string'&&/name/i.test(c))&&r.some(c=>typeof c==='string'&&/day/i.test(c))){hRow=i;dStart=i+1;break}
+    }
+    if(hRow===-1){showErr('Cannot find Name + Day columns.');return}
+    const hdrs=raw[hRow];
+    const nameCol=hdrs.findIndex(h=>typeof h==='string'&&/name/i.test(h));
+    const dayCols=[];
+    hdrs.forEach((h,i)=>{if(typeof h==='string'&&/day\s*\d+/i.test(h))dayCols.push(i)});
+    if(nameCol===-1||dayCols.length===0){showErr('Missing Name or Day columns.');return}
+    const users=[];
+    for(let r=dStart;r<raw.length;r++){
+      const row=raw[r];const nm=row[nameCol];
+      if(!nm||typeof nm!=='string'||nm.trim()===''||/instruction/i.test(nm))continue;
+      users.push({name:nm.trim(),steps:dayCols.map(c=>Math.max(0,parseInt(row[c])||0))});
+    }
+    if(users.length===0){showErr('No user data found.');return}
+    let month='';
+    if(ws['!merges']){const c=ws[XLSX.utils.encode_cell({r:0,c:0})];if(c&&c.v){const m=String(c.v).match(/—\s*(.+)/);month=m?m[1]:''}}
+    DATA={users,month:month||'This month',days:dayCols.length};
+    buildSelect();goTo('select');
+  }catch(e){showErr('Parse error: '+e.message)}
+}
+
+function loadDemo(){
+  const names=['Alex Chen','Jordan Kim','Sam Rivera','Maya Patel','Chris Nguyen'];
+  const seed=[
+    [9200,11400,0,8700,13200,7800,0,10100,12600,6400,9800,11200,0,8300,14100,7200,9600,10800,0,8900,11700,6800,10200,12400,0,9100,11800,7600,10500,9300],
+    [4800,6200,3900,5400,7100,0,4200,5800,6900,4100,5600,7300,3800,4900,6500,0,5200,6800,4400,5700,7200,3700,5100,6600,4000,5900,7000,4300,5500,6300],
+    [11200,13800,10600,12900,15400,11800,0,13200,14700,10900,12400,14100,11600,13500,15900,12200,0,14300,11400,13000,15200,11900,13700,14500,10800,12600,14900,11500,13300,15100],
+    [6300,8100,5700,7400,9200,6800,5200,7900,8700,6100,7600,9400,5900,7200,8900,6500,7800,9100,5600,7300,8600,6200,7700,9300,5800,7100,8800,6400,7900,8200],
+    [2800,4100,3200,2600,4700,3500,0,3800,4400,2900,3600,4200,2700,3900,4600,3300,2500,4000,3100,4500,3700,2800,4300,3900,2600,4100,3400,3000,4600,3200]
+  ];
+  DATA={users:names.map((n,i)=>({name:n,steps:seed[i]})),month:'April 2025',days:30};
+  buildSelect();goTo('select');
+}
+
+function ini(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
+function fmt(n){return Math.round(n).toLocaleString()}
+function uTotal(u){return u.steps.reduce((a,b)=>a+b,0)}
+function longestStreak(s){let m=0,c=0;s.forEach(v=>{if(v>0){c++;m=Math.max(m,c)}else c=0});return m}
+
+// Fun distance comparisons
+function distanceComparisons(km){
+  const comps=[
+    {dist:5.6,  label:'Times Square → Brooklyn Bridge',emoji:'🗽'},
+    {dist:11,   label:'Hollywood Sign → Santa Monica Pier',emoji:'🎬'},
+    {dist:17,   label:'Eiffel Tower → Palace of Versailles',emoji:'🗼'},
+    {dist:42.2, label:'a full marathon',emoji:'🏅'},
+    {dist:88,   label:'NYC → Philadelphia',emoji:'🚆'},
+    {dist:180,  label:'LA → San Diego',emoji:'🌊'},
+    {dist:350,  label:'Chicago → Detroit',emoji:'🏙️'},
+    {dist:560,  label:'London → Paris (and back)',emoji:'✈️'},
+    {dist:770,  label:'Miami → Atlanta',emoji:'🌴'},
+  ];
+  const best=comps.filter(c=>km>=c.dist*0.5).pop()||comps[0];
+  const times=(km/best.dist).toFixed(1);
+  return `${best.emoji} that's like walking <strong>${times}× ${best.label}</strong>`;
+}
+
+function buildSelect(){
+  document.getElementById('selSub').textContent=DATA.month+' · '+DATA.users.length+' people';
+  const g=document.getElementById('userGrid');g.innerHTML='';
+  DATA.users.forEach((u,i)=>{
+    const p=PALETTES[i%PALETTES.length];
+    const d=document.createElement('div');d.className='u-card';
+    d.innerHTML=`<div class="u-avatar" style="background:${p.bg};color:${p.color}">${ini(u.name)}</div><div class="u-name">${u.name}</div><div class="u-steps">${fmt(uTotal(u))} steps</div>`;
+    d.onclick=()=>buildViewer(i);g.appendChild(d);
+  });
+}
+
+function buildViewer(idx){
+  const u=DATA.users[idx];
+  const steps=u.steps,days=DATA.days;
+  const total=uTotal(u);
+  const active=steps.filter(s=>s>0);
+  const activeDays=active.length;
+  const avg=activeDays>0?Math.round(total/activeDays):0;
+  const avgAll=Math.round(total/days);
+  const max=Math.max(...steps);
+  const maxDay=steps.indexOf(max)+1;
+  const restDays=days-activeDays;
+  const streak=longestStreak(steps);
+  const totalCal=Math.round(total*0.04);
+  const avgCalDay=activeDays>0?Math.round(totalCal/activeDays):0;
+  const km=parseFloat((total*STEP_M/1000).toFixed(1));
+  const miles=(km*0.621371).toFixed(1);
+  const marathons=(km/42.195).toFixed(1);
+  const avgKm=parseFloat((avg*STEP_M/1000).toFixed(2));
+  const avgMiles=(avgKm*0.621371).toFixed(2);
+
+  const allTotals=[...DATA.users].map(u=>({name:u.name,total:uTotal(u)})).sort((a,b)=>b.total-a.total);
+  const grandTotal=allTotals.reduce((a,b)=>a+b.total,0);
+  const rank=allTotals.findIndex(x=>x.name===u.name)+1;
+  const myPct=grandTotal>0?((total/grandTotal)*100).toFixed(1):0;
+  const top5sorted=allTotals.slice(0,5);
+  const top5Days=[...steps.map((s,i)=>({day:i+1,s}))].sort((a,b)=>b.s-a.s).slice(0,5);
+  const vsAvgTotal=total-(AVG_GLOBAL*days);
+
+  let persona='',personaDesc='';
+  if(avg>=10000){persona='THE ELITE WALKER';personaDesc="You're in the top tier. 10,000+ steps daily is a lifestyle, not a goal — and you've made it your default. The streets know your name."}
+  else if(avg>=7500){persona='THE CONSISTENT MOVER';personaDesc="You show up every day. Not flashy, just dependable — your body thanks you for the steady rhythm you've built this month."}
+  else if(avg>=5000){persona='THE CASUAL CRUSHER';personaDesc="Above average, every day. You don't obsess, but you don't slack either. There's real momentum building here."}
+  else{persona='THE SLOW BURNER';personaDesc="Every step is earned. You're building a foundation — and the best wrapped stories start from right here."}
+
+  document.getElementById('vtUser').textContent=u.name.toUpperCase();
+  document.getElementById('vtMonth').textContent=DATA.month;
+
+  const distComp=distanceComparisons(km);
+  const avgDistComp=distanceComparisons(avgKm*30);
+  const vsAvgFmt=(vsAvgTotal>=0?'+':'')+fmt(vsAvgTotal);
+
+  const slides=[
+    // S1: Total
+    `<div class="s1" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div class="s1-mesh"></div>
+      <div class="s1-eyebrow">total steps · ${DATA.month}</div>
+      <div class="s1-name">${u.name.split(' ')[0]}'s month</div>
+      <div style="margin-top:1.5rem">
+        <div class="s1-label">YOU WALKED</div>
+        <div class="s1-num">${fmt(total)}</div>
+        <div class="s1-unit">STEPS</div>
+      </div>
+      <div class="s1-bar"><div class="s1-bar-fill" style="--w:${Math.min(100,Math.round((total/(AVG_GLOBAL*days*2))*100))}%"></div></div>
+      <div class="s1-foot">across <strong>${activeDays} active days</strong> · <strong>${restDays} rest days</strong> · ${miles} miles total</div>
+    </div>`,
+
+    // S2: Daily Average — with creative comparisons
+    `<div class="s2" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div class="s2-mesh"></div>
+      <div class="s2-eyebrow">daily average</div>
+      <div class="s2-label">on active days, you averaged</div>
+      <div class="s2-num">${fmt(avg)}</div>
+      <div class="s2-unit">STEPS / DAY</div>
+      <div class="s2-divider"></div>
+      <div class="s2-compare-grid">
+        <div class="s2-stat">
+          <div class="s2-stat-val">${avg>=AVG_GLOBAL?(((avg/AVG_GLOBAL-1)*100).toFixed(0)+'% above'):((((AVG_GLOBAL-avg)/AVG_GLOBAL)*100).toFixed(0)+'% below')}</div>
+          <div class="s2-stat-lbl">global avg (4,000/day)</div>
+        </div>
+        <div class="s2-stat">
+          <div class="s2-stat-val">${fmt(avgAll)}</div>
+          <div class="s2-stat-lbl">monthly avg (inc. rest days)</div>
+        </div>
+        <div class="s2-stat">
+          <div class="s2-stat-val">${avgMiles} mi</div>
+          <div class="s2-stat-lbl">distance per active day</div>
+        </div>
+        <div class="s2-stat">
+          <div class="s2-stat-val">${vsAvgFmt}</div>
+          <div class="s2-stat-lbl">steps vs avg person this month</div>
+        </div>
+      </div>
+      <div class="s2-fun-row">
+        <div class="s2-fun-icon">🗺️</div>
+        <div class="s2-fun-text">${distComp} this month — <strong>${miles} miles</strong> total.</div>
+      </div>
+    </div>`,
+
+    // S3: Top 5 Steppers
+    `<div class="s3" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div class="s3-mesh"></div>
+      <div class="s3-eyebrow">leaderboard</div>
+      <div class="s3-title">TOP 5 STEPPERS</div>
+      ${top5sorted.map((p,i)=>{
+        const isMe=p.name===u.name;
+        const rankCls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+        const barPct=top5sorted[0].total>0?Math.round((p.total/top5sorted[0].total)*100):0;
+        return `<div class="lb-row">
+          <div class="lb-rank ${rankCls}">${i+1}</div>
+          <div class="lb-bar-wrap">
+            <div class="lb-name">${p.name}${isMe?'<span class="me-badge">YOU</span>':''}</div>
+            <div class="lb-track"><div class="lb-fill" style="width:${barPct}%;--i:${i}"></div></div>
+          </div>
+          <div class="lb-steps ${i===0?'top1':''}">${fmt(p.total)}</div>
+        </div>`;
+      }).join('')}
+    </div>`,
+
+    // S4: Best Day
+    `<div class="s4" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div class="s4-mesh"></div>
+      <div class="s4-eyebrow">peak performance</div>
+      <div class="s4-label">your best single day</div>
+      <div class="s4-num">${fmt(max)}</div>
+      <div class="s4-date">DAY ${maxDay} · ${DATA.month.split(' ')[0]||''} ${maxDay}</div>
+      <div class="s4-compare">
+        <div class="s4-chip"><div class="s4-chip-val">${(max/AVG_GLOBAL).toFixed(1)}×</div><div class="s4-chip-lbl">global avg</div></div>
+        <div class="s4-chip"><div class="s4-chip-val">${max>=avg?'+'+fmt(max-avg):fmt(max-avg)}</div><div class="s4-chip-lbl">vs your avg</div></div>
+        <div class="s4-chip"><div class="s4-chip-val">${(max*STEP_M/1000*0.621).toFixed(1)} mi</div><div class="s4-chip-lbl">that day</div></div>
+      </div>
+    </div>`,
+
+    // S5: Top 5 Days
+    `<div class="s5" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div class="s5-mesh"></div>
+      <div class="s5-eyebrow">your power days</div>
+      <div class="s5-title">TOP 5 DAYS THIS MONTH</div>
+      <div class="days-list">
+        ${top5Days.map((d,i)=>{
+          const pct=top5Days[0].s>0?Math.round((d.s/top5Days[0].s)*100):0;
+          return `<div class="day-item">
+            <div class="day-num-badge">${d.day}</div>
+            <div class="day-item-bar"><div class="day-item-fill" style="width:${pct}%;--i:${i}"></div></div>
+            <div class="day-item-steps ${i===0?'best':''}">${fmt(d.s)}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`,
+
+    // S6: Calories
+    `<div class="s6" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div class="s6-mesh"></div>
+      <div class="s6-eyebrow">energy burned</div>
+      <div class="s6-label">avg calories burned per active day</div>
+      <div class="s6-num">${fmt(avgCalDay)}</div>
+      <div class="s6-unit">KCAL / DAY</div>
+      <div class="s6-grid">
+        <div class="s6-cell"><div class="s6-cell-val">${fmt(totalCal)}</div><div class="s6-cell-lbl">total kcal this month</div></div>
+        <div class="s6-cell"><div class="s6-cell-val">${(totalCal/3500).toFixed(1)} lb</div><div class="s6-cell-lbl">equiv. fat burned</div></div>
+        <div class="s6-cell"><div class="s6-cell-val">${Math.round(totalCal/250)}</div><div class="s6-cell-lbl">🥑 avocado toasts</div></div>
+        <div class="s6-cell"><div class="s6-cell-val">${Math.round(totalCal/95)}</div><div class="s6-cell-lbl">☕ coffees earned</div></div>
+      </div>
+    </div>`,
+
+    // S7: Streak
+    `<div class="s7" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div class="s7-mesh"></div>
+      <div class="s7-eyebrow">consistency check</div>
+      <div class="s7-label">longest active streak</div>
+      <div class="s7-num">${streak}</div>
+      <div class="s7-unit">DAYS IN A ROW</div>
+      <div class="s7-foot">active <strong>${activeDays} of ${days} days</strong> — ${Math.round((activeDays/days)*100)}% activity rate. ${streak>=14?'two full weeks straight. relentless.':streak>=7?'a full week without stopping.':streak>=3?'solid consistency. keep going.':'keep building that streak.'}</div>
+    </div>`,
+
+    // S8: Persona
+    `<div class="s8" style="height:100%;display:flex;flex-direction:column;justify-content:center">
+      <div class="s8-mesh"></div>
+      <div class="s8-eyebrow">your walker persona</div>
+      <div class="s8-title">${persona}</div>
+      <div class="s8-desc">${personaDesc}</div>
+      <div class="s8-stats-row">
+        <div class="s8-stat"><div class="s8-stat-val">#${rank}</div><div class="s8-stat-lbl">of ${DATA.users.length} people</div></div>
+        <div class="s8-stat"><div class="s8-stat-val">${myPct}%</div><div class="s8-stat-lbl">of team's steps</div></div>
+        <div class="s8-stat"><div class="s8-stat-val">${marathons}</div><div class="s8-stat-lbl">marathons walked</div></div>
+      </div>
+    </div>`,
+
+    // S9: Finale
+    `<div class="s9" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div class="s9-mesh"></div>
+      <div class="s9-eyebrow" style="position:relative">that's a wrap · ${DATA.month}</div>
+      <div class="s9-name">${u.name.toUpperCase()}</div>
+      <div class="s9-tagline">${fmt(total)} STEPS</div>
+      <div class="s9-chips">
+        <div class="s9-chip hi">#${rank} of ${DATA.users.length}</div>
+        <div class="s9-chip">${fmt(avg)} avg/day</div>
+        <div class="s9-chip">${streak}d streak</div>
+        <div class="s9-chip">${miles} mi</div>
+        <div class="s9-chip">${fmt(totalCal)} kcal</div>
+        <div class="s9-chip">${vsAvgFmt} vs avg</div>
+      </div>
+      <button class="s9-replay" onclick="goTo('select')">VIEW ANOTHER →</button>
+    </div>`,
+  ];
+
+  totalSlides=slides.length;curSlide=0;
+  document.getElementById('slideFrame').innerHTML=slides.map((s,i)=>`<div class="slide${i===0?' active':''}" id="sl${i}">${s}</div>`).join('');
+  document.getElementById('progressDots').innerHTML=slides.map((_,i)=>`<div class="dot${i===0?' now':''}" style="flex:1" onclick="jumpTo(${i})"></div>`).join('');
+  updateNav();goTo('viewer');
+}
+
+function nav(dir){
+  const next=curSlide+dir;
+  if(next<0||next>=totalSlides)return;
+  document.getElementById('sl'+curSlide).classList.remove('active');
+  curSlide=next;
+  document.getElementById('sl'+curSlide).classList.add('active');
+  updateNav();
+}
+function jumpTo(i){
+  document.getElementById('sl'+curSlide).classList.remove('active');
+  curSlide=i;document.getElementById('sl'+curSlide).classList.add('active');updateNav();
+}
+function updateNav(){
+  document.querySelectorAll('.dot').forEach((d,i)=>{
+    d.classList.remove('now','done');
+    if(i===curSlide)d.classList.add('now');
+    else if(i<curSlide)d.classList.add('done');
+  });
+  document.getElementById('prevBtn').disabled=curSlide===0;
+  const nb=document.getElementById('nextBtn');
+  if(curSlide===totalSlides-1){nb.textContent='done ✓';nb.onclick=()=>goTo('select')}
+  else{nb.textContent='next →';nb.onclick=()=>nav(1)}
+}
+</script>
